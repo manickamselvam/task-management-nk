@@ -1,58 +1,56 @@
-import React, { useEffect } from "react";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
-import { Provider } from "react-redux";
-import { store } from "./store";
-import "./App.css";
+// // src/App.jsx
+// import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+// import Login from "./components/Login";
+// import Register from "./components/Register";
+// import Dashboard from "./components/Dashboard";
+// import ProtectedRoute from "./components/ProtectedRoute";
+// import ForgotPassword from "./components/ForgotPassword";
 
-// Components
-import Register from "./pages/Register";
-import SignInForm from "./pages/SignInForm";
-import Dashboard from "./pages/Dashboard";
-import Navbar from "./components/Navbar";
+// function App() {
+//   return (
+//     <Router>
+//       <Routes>
+//         {/* Public routes */}
+//         <Route path="/login" element={<Login />} />
+//         <Route path="/register" element={<Register />} />
+//         <Route path="/forgot-password" element={<ForgotPassword />} />
+
+//         {/* Protected routes */}
+//         <Route element={<ProtectedRoute />}>
+//           <Route path="/dashboard" element={<Dashboard />} />
+//         </Route>
+//       </Routes>
+//     </Router>
+//   );
+// }
+
+// export default App;
+
+// src/App.jsx
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Login from "./components/Login";
+import Register from "./components/Register";
+import Dashboard from "./components/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
-
-// Redux initialization component
-const AppContent = () => {
-  return (
-    <Router>
-      <div className="App">
-        <Navbar />
-        <Routes>
-          {/* Default route redirects to sign-in */}
-          <Route path="/" element={<Navigate to="/signin" replace />} />
-
-          {/* Public Routes */}
-          <Route path="/signin" element={<SignInForm />} />
-          <Route path="/register" element={<Register />} />
-
-          {/* Protected Routes */}
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Catch-all route for 404 */}
-          <Route path="*" element={<Navigate to="/signin" replace />} />
-        </Routes>
-      </div>
-    </Router>
-  );
-};
+import ForgotPassword from "./components/ForgotPassword";
+import NotFound from "./components/NotFound"; // ✅ Import your NotFound component
 
 function App() {
   return (
-    <Provider store={store}>
-      <AppContent />
-    </Provider>
+    <Router>
+      <Routes>
+        {/* Public routes */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        {/* Protected routes */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+        </Route>
+        {/* Catch-all route for undefined paths */}
+        <Route path="*" element={<NotFound />} /> {/* ✅ Add this line */}
+      </Routes>
+    </Router>
   );
 }
 

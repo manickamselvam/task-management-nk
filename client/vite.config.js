@@ -14,5 +14,6 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/api/, ""),
       },
     },
+    historyApiFallback: true, // 👈 this is the key line
   },
 });
