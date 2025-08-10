@@ -11,7 +11,7 @@ export default defineConfig({
       "/api": {
         target: `http://localhost:${BACKEND_PORT}`,
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ""),
+        // rewrite: (path) => path.replace(/^\/api/, ""),
       },
     },
     historyApiFallback: true, // 👈 this is the key line

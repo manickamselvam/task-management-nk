@@ -1,56 +1,48 @@
-// // src/App.jsx
-// import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-// import Login from "./components/Login";
-// import Register from "./components/Register";
-// import Dashboard from "./components/Dashboard";
-// import ProtectedRoute from "./components/ProtectedRoute";
-// import ForgotPassword from "./components/ForgotPassword";
-
-// function App() {
-//   return (
-//     <Router>
-//       <Routes>
-//         {/* Public routes */}
-//         <Route path="/login" element={<Login />} />
-//         <Route path="/register" element={<Register />} />
-//         <Route path="/forgot-password" element={<ForgotPassword />} />
-
-//         {/* Protected routes */}
-//         <Route element={<ProtectedRoute />}>
-//           <Route path="/dashboard" element={<Dashboard />} />
-//         </Route>
-//       </Routes>
-//     </Router>
-//   );
-// }
-
-// export default App;
-
-// src/App.jsx
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Login from "./components/Login";
-import Register from "./components/Register";
-import Dashboard from "./components/Dashboard";
-import ProtectedRoute from "./components/ProtectedRoute";
-import ForgotPassword from "./components/ForgotPassword";
-import NotFound from "./components/NotFound"; // ✅ Import your NotFound component
+import React from "react";
+import "bootstrap/dist/css/bootstrap.min.css";
+import Login from "./views/Login";
+import Registration from "./views/Registration";
+// import { Router, Redirect } from "@reach/router";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import Main from "./views/Main";
+import NewUser from "./views/NewUser";
 
 function App() {
+  const onSubmit = (e) => {
+    e.preventDefault();
+  };
   return (
-    <Router>
-      <Routes>
-        {/* Public routes */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        {/* Protected routes */}
-        <Route element={<ProtectedRoute />}>
-          <Route path="/dashboard" element={<Dashboard />} />
-        </Route>
-        {/* Catch-all route for undefined paths */}
-        <Route path="*" element={<NotFound />} /> {/* ✅ Add this line */}
-      </Routes>
-    </Router>
+    // <div className="App">
+    //   <Router>
+    //     <Redirect from="/" to="/register" noThrow />
+    //     <Registration path="/register" />
+    //     <Login path="/login" />
+    //     <Main path="/home" onSubmit={onSubmit} />
+    //     <Main path="/home/geer/:id" onSubmit={onSubmit} />
+    //     <NewUser path="/welcome" />
+    //   </Router>
+    // </div>
+
+    <div className="App">
+      <Router>
+        <Routes>
+          {/* Redirect from "/" to "/register" */}
+          <Route path="/" element={<Navigate to="/register" replace />} />
+
+          {/* Pages */}
+          <Route path="/register" element={<Registration />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/home" element={<Main onSubmit={onSubmit} />} />
+          <Route path="/home/geer/:id" element={<Main onSubmit={onSubmit} />} />
+          <Route path="/welcome" element={<NewUser />} />
+        </Routes>
+      </Router>
+    </div>
   );
 }
 

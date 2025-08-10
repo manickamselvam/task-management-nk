@@ -1,27 +1,38 @@
-// import express from "express";
-// import dotenv from "dotenv";
-// import cors from "cors";
-// import connectDB from "./config/db.js";
-// import authRoutes from "./routes/authRoutes.js";
-
 const express = require("express");
-const dotenv = require("dotenv");
 const cors = require("cors");
-const connectDB = require("./config/db");
-const authRoutes = require("./routes/authRoutes");
-
-dotenv.config();
-connectDB();
-
 const app = express();
+const port = 8000;
+const cookieParser = require("cookie-parser");
+const socketIo = require("socket.io");
 
-// Middlewares
-app.use(cors());
-app.use(express.json()); // to parse JSON request bodies
+require("../server/config/mongoose.config");
+require("dotenv").config({ path: __dirname + "/./.env" });
+app.use(cookieParser());
+app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+require("./routes/user.routes")(app);
+require("./routes/project.routes")(app);
+require("./routes/task.routes")(app);
 
-// Routes
-app.use("/api/auth", authRoutes);
+const server = app.listen(port, () =>
+  console.log(`Listening on port: ${port}`)
+);
 
-// Start server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+const io = socketIo(server);
+
+io.on("connection", (socket) => {
+  //this is for autoupdating the list of issues
+  socket.on("new task created", (task) => {
+    io.emit("new task added", task);
+  });
+  socket.on("new comment created", (comment) => {
+    console.log("this is the new comment: ", comment);
+    io.emit("new comment added", comment);
+  });
+
+  //don't think we actually need this
+  // socket.on('disconnect', () => {
+  //     console.log(`Someone left`);
+  // })
+});
