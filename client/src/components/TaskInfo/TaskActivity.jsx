@@ -7,42 +7,38 @@ import TaskWorkLog from "./TaskWorkLog";
 export default function Activity({ task }) {
   const [display, setDisplay] = useState("comments");
 
+  const tabs = [
+    {
+      key: "comments",
+      label: "Comments",
+      component: <TaskComments task={task} />,
+    },
+    { key: "history", label: "History", component: <TaskHistory /> },
+    { key: "work log", label: "Work Log", component: <TaskWorkLog /> },
+  ];
+
+  const activeTab = tabs.find((tab) => tab.key === display);
+
   return (
     <div className={styles.taskActivity}>
       <h5>Activity</h5>
-      <div>
-        <span style={{ fontWeight: "bold" }}>Show:</span>
-        <button
-          onClick={() => setDisplay("comments")}
-          className={
-            display === "comments" ? styles.selectedButton : styles.taskButton
-          }
-        >
-          Comments
-        </button>
-        <button
-          onClick={() => setDisplay("history")}
-          className={
-            display === "history" ? styles.selectedButton : styles.taskButton
-          }
-        >
-          History
-        </button>
-        <button
-          onClick={() => setDisplay("work log")}
-          className={
-            display === "work log" ? styles.selectedButton : styles.taskButton
-          }
-        >
-          Work Log
-        </button>
+      <div className={styles.tabHeader}>
+        <span className={styles.tabLabel}>Show:</span>
+        {tabs.map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setDisplay(tab.key)}
+            className={
+              display === tab.key ? styles.selectedButton : styles.taskButton
+            }
+            aria-pressed={display === tab.key}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
-      <div className="row">
-        <p></p>
-      </div>
-      {display === "comments" ? <TaskComments task={task} /> : <></>}
-      {display === "history" ? <TaskHistory /> : <></>}
-      {display === "work log" ? <TaskWorkLog /> : <></>}
+
+      <div className={styles.tabContent}>{activeTab?.component}</div>
     </div>
   );
 }

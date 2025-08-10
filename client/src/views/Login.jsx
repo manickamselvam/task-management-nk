@@ -1,164 +1,78 @@
-// import React, { useState } from "react";
-// import { Link, navigate } from "@reach/router";
-// import Axios from "axios";
-
-// const Login = (props) => {
-//   const [email, setEmail] = useState("");
-//   const [password, setPassword] = useState("");
-//   const [errors, setErrors] = useState("");
-
-//   function handleSubmit(e) {
-//     e.preventDefault();
-//     const user = {
-//       email,
-//       password,
-//     };
-//     Axios.post("http://localhost:8000/api/users/login", user, {
-//       withCredentials: true,
-//     })
-//       .then((res) => {
-//         localStorage.setItem("userID", res.data.user._id);
-//         localStorage.setItem("userName", res.data.user.name);
-//         navigate("/home");
-//       })
-//       .catch((err) => {
-//         setErrors(err.response.data.message);
-//       });
-//   }
-
-//   return (
-//     <div className="container">
-//       <div className="row">
-//         <div className="col text-center">
-//           <h1>Geera</h1>
-//         </div>
-//       </div>
-//       <div className="row">
-//         <div className="col-6 container shadow rounded border">
-//           <div className="row my-3">
-//             <div className="col font-weight-bold text-center">
-//               Log in to your account
-//             </div>
-//           </div>
-//           <form onSubmit={handleSubmit}>
-//             <div className="row">
-//               {errors && <span className="text-danger">{errors}</span>}
-//             </div>
-//             <div className="row">
-//               <input
-//                 className="col text-center m-3"
-//                 type="email"
-//                 placeholder="Enter email"
-//                 value={email}
-//                 onChange={(e) => setEmail(e.target.value)}
-//               />
-//             </div>
-//             <div className="row">
-//               <input
-//                 className="col text-center m-3"
-//                 type="password"
-//                 placeholder="Enter password"
-//                 value={password}
-//                 onChange={(e) => setPassword(e.target.value)}
-//               />
-//             </div>
-//             <div className="row my-3">
-//               <div className="col text-center">
-//                 <button type="submit" className="btn btn-primary">
-//                   Continue
-//                 </button>
-//               </div>
-//             </div>
-//           </form>
-//           <div className="row my-3">
-//             <div className="col text-center">
-//               <Link to="/register">Sign up for an account</Link>
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default Login;
-
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Axios from "axios";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState("");
-  const navigate = useNavigate(); // replaces navigate from @reach/router
+  const navigate = useNavigate();
 
-  function handleSubmit(e) {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const user = { email, password };
+    setErrors(""); // clear previous errors
 
-    Axios.post("http://localhost:8000/api/users/login", user, {
-      withCredentials: true,
-    })
-      .then((res) => {
-        localStorage.setItem("userID", res.data.user._id);
-        localStorage.setItem("userName", res.data.user.name);
-        navigate("/home"); // works the same in react-router-dom
-      })
-      .catch((err) => {
-        setErrors(err.response?.data?.message || "Login failed");
-      });
-  }
+    try {
+      const { data } = await Axios.post(
+        `${API_BASE_URL}/users/login`,
+        { email, password },
+        { withCredentials: true }
+      );
+
+      localStorage.setItem("userID", data.user._id);
+      localStorage.setItem("userName", data.user.name);
+      navigate("/home");
+    } catch (err) {
+      setErrors(err.response?.data?.message || "Login failed");
+    }
+  };
 
   return (
-    <div className="container">
-      <div className="row">
-        <div className="col text-center">
-          <h1>Geera</h1>
-        </div>
-      </div>
-      <div className="row">
-        <div className="col-6 container shadow rounded border">
-          <div className="row my-3">
-            <div className="col font-weight-bold text-center">
-              Log in to your account
-            </div>
+    <div className="d-flex justify-content-center align-items-center vh-100 bg-light">
+      <div
+        className="p-4 shadow rounded bg-white"
+        style={{ maxWidth: "400px", width: "100%" }}
+      >
+        <h2 className="text-center mb-4 fw-bold">SprintGrid</h2>
+        <h5 className="text-center mb-3">Log in to your account</h5>
+
+        {errors && (
+          <div className="alert alert-danger py-2 text-center" role="alert">
+            {errors}
           </div>
-          <form onSubmit={handleSubmit}>
-            <div className="row">
-              {errors && <span className="text-danger">{errors}</span>}
-            </div>
-            <div className="row">
-              <input
-                className="col text-center m-3"
-                type="email"
-                placeholder="Enter email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div className="row">
-              <input
-                className="col text-center m-3"
-                type="password"
-                placeholder="Enter password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-            <div className="row my-3">
-              <div className="col text-center">
-                <button type="submit" className="btn btn-primary">
-                  Continue
-                </button>
-              </div>
-            </div>
-          </form>
-          <div className="row my-3">
-            <div className="col text-center">
-              <Link to="/register">Sign up for an account</Link>
-            </div>
+        )}
+
+        <form onSubmit={handleSubmit}>
+          <div className="mb-3">
+            <input
+              type="email"
+              className="form-control"
+              placeholder="Enter email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
           </div>
+
+          <div className="mb-3">
+            <input
+              type="password"
+              className="form-control"
+              placeholder="Enter password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+
+          <button type="submit" className="btn btn-primary w-100">
+            Continue
+          </button>
+        </form>
+
+        <div className="text-center mt-3">
+          <Link to="/register">Sign up for an account</Link>
         </div>
       </div>
     </div>

@@ -1,34 +1,41 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { FormControl } from "react-bootstrap";
+import { Form, InputGroup } from "react-bootstrap";
+import { CalendarEvent } from "react-bootstrap-icons"; // Bootstrap icon
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export default function TaskDueDate({ currentTask }) {
-  const [dueDate, setDueDate] = useState(currentTask.dueDate);
+  const [dueDate, setDueDate] = useState(currentTask?.dueDate || "");
 
-  const handleChange = (value) => {
-    // console.log('this is the date being passed in: ', value);
-    // console.log('this is the current task: ', currentTask);
+  const handleChange = async (value) => {
     setDueDate(value);
-
-    axios
-      .put(
-        `http://localhost:8000/api/tasks/${currentTask._id}`,
+    try {
+      await axios.put(
+        `${API_BASE_URL}/tasks/${currentTask._id}`,
         { dueDate: value },
         { withCredentials: true }
-      )
-      .then((res) => res.data)
-      .catch(console.log);
+      );
+      console.log("Due date updated successfully");
+    } catch (error) {
+      console.error("Error updating due date:", error);
+    }
   };
 
   return (
-    <div>
-      <h5>Due Date</h5>
-      <FormControl
-        type="date"
-        value={dueDate}
-        selected={dueDate}
-        onChange={(e) => handleChange(e.target.value)}
-      ></FormControl>
+    <div className="mt-3">
+      <Form.Group>
+        <Form.Label className="fw-semibold">📅 Due Date</Form.Label>
+        <InputGroup>
+          <InputGroup.Text>
+            <CalendarEvent />
+          </InputGroup.Text>
+          <Form.Control
+            type="date"
+            value={dueDate}
+            onChange={(e) => handleChange(e.target.value)}
+          />
+        </InputGroup>
+      </Form.Group>
     </div>
   );
 }

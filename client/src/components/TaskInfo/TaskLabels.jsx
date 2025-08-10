@@ -1,60 +1,52 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Select from "react-dropdown-select";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export default function TaskLabels({ currentTask }) {
-  const [labels, setLabels] = useState(currentTask.labels);
-  // const [allLabels, setAllLabels] = useState(currentTask.labels);
+  const [labels, setLabels] = useState(currentTask.labels || []);
+  const [allLabels, setAllLabels] = useState([]);
 
-  // useEffect(() => {
-  //     axios
-  //         .get('http://localhost:8000/api/tasks/', { withCredentials: true })
-  //         .then((res) => {
-  //             console.log(res.data);
-  //             for (const task in res.data) {
-  //                 console.log(task);
-  //                 if (task.labels.length > 0) {
-  //                     console.log(task.labels);
-  //                     // for (const label in task.labels) {
-  //                     //     setAllLabels([...allLabels, label]);
-  //                     // }
-  //                 }
-  //             }
-  //         })
-  //         .catch(console.log);
-  // }, []);
+  // Fetch all available labels (if you want to allow selecting from all labels)
+  useEffect(() => {
+    axios
+      .get(`${API_BASE_URL}/labels`, { withCredentials: true }) // assuming you have an endpoint to get all labels
+      .then((res) => {
+        setAllLabels(res.data || []);
+      })
+      .catch(console.log);
+  }, []);
 
-  const handleChange = (value) => {
-    if (labels === undefined) {
-      setLabels([value[0]["value"]]);
-    } else {
-      setLabels([...labels, value[0]["value"]]);
-    }
+  const handleChange = (values) => {
+    const newLabels = values.map((val) => val.value);
+    setLabels(newLabels);
 
     axios
       .put(
-        `http://localhost:8000/api/tasks/${currentTask.number}`,
-        { labels: value[0]["value"] },
+        `${API_BASE_URL}/tasks/${currentTask.number}`,
+        { labels: newLabels },
         { withCredentials: true }
       )
-      .then((res) => res.data)
+      .then((res) => {
+        // Optional: you can update currentTask or show a success message here
+      })
       .catch(console.log);
   };
 
-  if (labels === undefined) return "Loading...";
+  if (!labels) return "Loading...";
 
   return (
-    <div>
+    <div style={{ minWidth: 300 }}>
       <Select
-        options={labels}
-        onChange={(values) => handleChange(values)}
-        multi={true}
-        clearable={true}
-        searchable={true}
+        options={allLabels.map((label) => ({ value: label, label }))}
+        onChange={handleChange}
+        multi
+        clearable
+        searchable
+        create
+        values={labels.map((label) => ({ value: label, label }))}
+        placeholder="Select or create labels"
         dropdownHandle={false}
-        // labelField="value"
-        create={true}
-        values={[labels.find((label) => label === currentTask.labels)]}
       />
     </div>
   );

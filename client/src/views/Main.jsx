@@ -1,262 +1,129 @@
-// import React, { useState, useEffect } from "react";
-// import Header from "../components/Header";
-// import Sidebar from "../components/Sidebar";
-// import NewTask from "../components/NewTask";
-// import TaskParent from "../components/TaskParent";
-// import { Modal } from "react-bootstrap";
-// import Axios from "axios";
-// import ProjectSettings from "../components/ProjectSettings";
-// import io from "socket.io-client";
-// import { navigate } from "@reach/router";
-// import styles from "../components/main.module.css";
-
-// export default function Main({ id }) {
-//   const [show, setShow] = useState(false);
-//   const [allUsers, setAllUsers] = useState(null);
-//   const [allProjects, setAllProjects] = useState(null);
-//   const [currentProj, setCurrentProj] = useState(null);
-//   const [tasks, setTasks] = useState([]);
-//   const [filteredTasks, setFilteredTasks] = useState([]);
-//   const [currentView, setCurrentView] = useState("tasks");
-//   const [socket] = useState(() => io(":8000"));
-//   //new
-//   const [task, setTask] = useState(null);
-
-//   useEffect(() => {
-//     //Make sure a user is logged in
-//     if (localStorage.getItem("userID") === null) {
-//       navigate("/login");
-//       return;
-//     }
-//     Axios.get(
-//       "http://localhost:8000/api/projects/user/" +
-//         localStorage.getItem("userID"),
-//       { withCredentials: true }
-//     ).then((res) => {
-//       //this is to prevent the site from crashing if a user has no projects created yet
-//       if (res.data.length === 0) {
-//         return navigate("/welcome");
-//       }
-//       setAllProjects(res.data);
-//       //updating currentProj to a default
-//       setCurrentProj(res.data[0]);
-//       setFilteredTasks(res.data[0].tasks);
-//       setTasks(res.data[0].tasks);
-//     });
-
-//     Axios.get("http://localhost:8000/api/users", {
-//       withCredentials: true,
-//     }).then((users) => setAllUsers(users.data));
-
-//     //new
-//     if (id) {
-//       Axios.get("http://localhost:8000/api/tasks/" + id, {
-//         withCredentials: true,
-//       })
-//         .then((res) => setTask(res.data))
-//         .catch(console.log);
-//     }
-
-//     socket.on("new task added", (newTask) => {
-//       setTasks((prevIssues) => {
-//         return [...prevIssues, newTask];
-//       });
-//     });
-
-//     return () => socket.disconnect(true);
-//   }, [socket]);
-
-//   const handleClose = () => setShow(false);
-//   const handleShow = () => setShow(true);
-
-//   if (allProjects == null) return <p>Loading...</p>;
-
-//   return (
-//     <>
-//       <div className="row">
-//         <div className="col-12">
-//           <Header
-//             showModal={handleShow}
-//             setCurrentProject={setCurrentProj}
-//             projects={allProjects}
-//             setProjects={setAllProjects}
-//             setTasks={setTasks}
-//             setFilteredTasks={setFilteredTasks}
-//           />
-//         </div>
-//       </div>
-
-//       <Modal size="lg" show={show} onHide={handleClose}>
-//         <Modal.Header closeButton>
-//           <div className="ml-1">
-//             {/* <div className="col"> */}
-//             <Modal.Title>Create issue</Modal.Title>
-//             {/* </div>
-//                         <div className="row col">
-//                             <Button variant="light">Import issues</Button>
-//                             {/* will need to create a drop down
-//                             <Button variant="light">Configure fields</Button>
-//                         </div> */}
-//           </div>
-//         </Modal.Header>
-//         <Modal.Body>
-//           <NewTask
-//             closeModal={handleClose}
-//             currentProject={currentProj}
-//             setCurrentProject={setCurrentProj}
-//             projects={allProjects}
-//             users={allUsers}
-//             // setTasks={setTasks}
-//             // onSubmit={(f) => setSubmitFunction(f)}
-//           />
-//         </Modal.Body>
-//         {/* <Modal.Footer>
-//                     <Button variant="primary" onClick={submitFunction}>
-//                         Create
-//                     </Button>
-//                 </Modal.Footer> */}
-//       </Modal>
-//       <div className={styles.main}>
-//         <Sidebar
-//           tasks={tasks}
-//           setTasks={setTasks}
-//           filteredTasks={filteredTasks}
-//           setFilteredTasks={setFilteredTasks}
-//           setCurrentView={setCurrentView}
-//           currentProj={currentProj}
-//           allProjects={allProjects}
-//           setCurrentProj={setCurrentProj}
-//           setAllProjects={setAllProjects}
-//         />
-//         {currentView === "tasks" ? (
-//           <TaskParent
-//             id={id}
-//             task={task}
-//             filteredTasks={filteredTasks}
-//             setFilteredTasks={setFilteredTasks}
-//             currentProject={currentProj}
-//             allUsers={allUsers}
-//           />
-//         ) : (
-//           <ProjectSettings
-//             currentProj={currentProj}
-//             setCurrentView={setCurrentView}
-//             setCurrentProj={setCurrentProj}
-//             allProjects={allProjects}
-//             setAllProjects={setAllProjects}
-//           />
-//         )}
-//       </div>
-//     </>
-//   );
-// }
-
-// New Code
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import NewTask from "../components/NewTask";
 import TaskParent from "../components/TaskParent";
-import { Modal } from "react-bootstrap";
-import Axios from "axios";
 import ProjectSettings from "../components/ProjectSettings";
+import Axios from "axios";
 import io from "socket.io-client";
 import styles from "../components/main.module.css";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export default function Main() {
-  const [show, setShow] = useState(false);
-  const [allUsers, setAllUsers] = useState(null);
-  const [allProjects, setAllProjects] = useState(null);
-  const [currentProj, setCurrentProj] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [users, setUsers] = useState([]);
+  const [projects, setProjects] = useState([]);
+  const [currentProject, setCurrentProject] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [filteredTasks, setFilteredTasks] = useState([]);
-  const [currentView, setCurrentView] = useState("tasks");
-  const [socket] = useState(() => io(":8000"));
-  const [task, setTask] = useState(null);
+  const [view, setView] = useState("tasks");
+  const [taskDetails, setTaskDetails] = useState(null);
 
-  const navigate = useNavigate(); // replaces @reach/router navigate
-  const { id } = useParams(); // get URL param if exists
+  const navigate = useNavigate();
+  const { id } = useParams();
 
   useEffect(() => {
-    // Make sure a user is logged in
-    if (!localStorage.getItem("userID")) {
+    const userID = localStorage.getItem("userID");
+    if (!userID) {
       navigate("/login");
       return;
     }
 
-    Axios.get(
-      "http://localhost:8000/api/projects/user/" +
-        localStorage.getItem("userID"),
-      { withCredentials: true }
-    ).then((res) => {
-      // Prevent crash if no projects
-      if (res.data.length === 0) {
-        navigate("/welcome");
-        return;
+    const socket = io(":8000");
+
+    const fetchData = async () => {
+      try {
+        const projRes = await Axios.get(
+          `${API_BASE_URL}/projects/user/${userID}`,
+          { withCredentials: true }
+        );
+
+        if (!projRes.data?.length) {
+          navigate("/welcome");
+          return;
+        }
+
+        setProjects(projRes.data);
+        setCurrentProject(projRes.data[0]);
+        setTasks(projRes.data[0]?.tasks || []);
+        setFilteredTasks(projRes.data[0]?.tasks || []);
+
+        const usersRes = await Axios.get(`${API_BASE_URL}/users`, {
+          withCredentials: true,
+        });
+        setUsers(usersRes.data);
+
+        if (id) {
+          const taskRes = await Axios.get(`${API_BASE_URL}/tasks/${id}`, {
+            withCredentials: true,
+          });
+          setTaskDetails(taskRes.data);
+        }
+      } catch (error) {
+        console.error("Error loading data:", error);
       }
-      setAllProjects(res.data);
-      setCurrentProj(res.data[0]);
-      setFilteredTasks(res.data[0].tasks);
-      setTasks(res.data[0].tasks);
-    });
+    };
 
-    Axios.get("http://localhost:8000/api/users", {
-      withCredentials: true,
-    }).then((users) => setAllUsers(users.data));
-
-    if (id) {
-      Axios.get("http://localhost:8000/api/tasks/" + id, {
-        withCredentials: true,
-      })
-        .then((res) => setTask(res.data))
-        .catch(console.log);
-    }
+    fetchData();
 
     socket.on("new task added", (newTask) => {
-      setTasks((prevIssues) => [...prevIssues, newTask]);
+      setTasks((prev) => [...prev, newTask]);
     });
 
-    return () => socket.disconnect(true);
-  }, [socket, id, navigate]);
+    return () => {
+      socket.disconnect();
+    };
+  }, [id, navigate]);
 
-  const handleClose = () => setShow(false);
-  const handleShow = () => setShow(true);
-
-  if (allProjects == null) return <p>Loading...</p>;
+  if (!projects.length) {
+    return (
+      <div className="flex items-center justify-center h-screen text-lg text-gray-500">
+        Loading projects...
+      </div>
+    );
+  }
 
   return (
     <>
       <div className="row">
         <div className="col-12">
           <Header
-            showModal={handleShow}
-            setCurrentProject={setCurrentProj}
-            projects={allProjects}
-            setProjects={setAllProjects}
+            showModal={() => setIsModalOpen(true)}
+            setCurrentProject={setCurrentProject}
+            projects={projects}
+            setProjects={setProjects}
             setTasks={setTasks}
             setFilteredTasks={setFilteredTasks}
           />
         </div>
       </div>
 
-      <Modal size="lg" show={show} onHide={handleClose}>
-        <Modal.Header closeButton>
-          <div className="ml-1">
-            <Modal.Title>Create issue</Modal.Title>
+      {/* Custom Modal (Tailwind) */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-lg p-6">
+            <div className="flex justify-between items-center border-b pb-3">
+              <h2 className="text-xl font-semibold">Create Issue</h2>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="mt-4">
+              <NewTask
+                closeModal={() => setIsModalOpen(false)}
+                currentProject={currentProject}
+                setCurrentProject={setCurrentProject}
+                projects={projects}
+                users={users}
+              />
+            </div>
           </div>
-        </Modal.Header>
-        <Modal.Body>
-          <NewTask
-            closeModal={handleClose}
-            currentProject={currentProj}
-            setCurrentProject={setCurrentProj}
-            projects={allProjects}
-            users={allUsers}
-          />
-        </Modal.Body>
-      </Modal>
+        </div>
+      )}
 
       <div className={styles.main}>
         <Sidebar
@@ -264,28 +131,28 @@ export default function Main() {
           setTasks={setTasks}
           filteredTasks={filteredTasks}
           setFilteredTasks={setFilteredTasks}
-          setCurrentView={setCurrentView}
-          currentProj={currentProj}
-          allProjects={allProjects}
-          setCurrentProj={setCurrentProj}
-          setAllProjects={setAllProjects}
+          setCurrentView={setView}
+          currentProj={currentProject}
+          allProjects={projects}
+          setCurrentProj={setCurrentProject}
+          setAllProjects={setProjects}
         />
-        {currentView === "tasks" ? (
+        {view === "tasks" ? (
           <TaskParent
             id={id}
-            task={task}
+            task={taskDetails}
             filteredTasks={filteredTasks}
             setFilteredTasks={setFilteredTasks}
-            currentProject={currentProj}
-            allUsers={allUsers}
+            currentProject={currentProject}
+            allUsers={users}
           />
         ) : (
           <ProjectSettings
-            currentProj={currentProj}
-            setCurrentView={setCurrentView}
-            setCurrentProj={setCurrentProj}
-            allProjects={allProjects}
-            setAllProjects={setAllProjects}
+            currentProj={currentProject}
+            setCurrentView={setView}
+            setCurrentProj={setCurrentProject}
+            allProjects={projects}
+            setAllProjects={setProjects}
           />
         )}
       </div>

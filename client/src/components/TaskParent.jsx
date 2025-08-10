@@ -12,22 +12,32 @@ export default function TaskParent({
   currentProject,
   allUsers,
 }) {
-  const [taskNum, setTaskNum] = useState(id);
+  const [selectedTaskId, setSelectedTaskId] = useState(id);
 
   return (
-    <div className={styles.taskParent}>
+    <div
+      className={`${styles.taskParent} bg-white shadow-md rounded-xl overflow-hidden`}
+    >
+      {/* Header Section */}
       <TaskHeader
         currentProject={currentProject}
         setFilteredTasks={setFilteredTasks}
       />
-      <div className={styles.taskContent}>
+
+      {/* Main Content */}
+      <div
+        className={`${styles.taskContent} flex flex-col md:flex-row gap-4 p-4`}
+      >
+        {/* Task List Section */}
         <Issues
-          setTaskNumber={setTaskNum}
+          setTaskNumber={setSelectedTaskId}
           filteredTasks={filteredTasks}
           id={id}
           task={task}
         />
-        <TaskInfo allUsers={allUsers} taskNumber={taskNum} />
+
+        {/* Task Details Section */}
+        <TaskInfo allUsers={allUsers} taskNumber={selectedTaskId} />
       </div>
     </div>
   );

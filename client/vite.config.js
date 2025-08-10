@@ -5,4 +5,7 @@ const FRONTEND_PORT = process.env.FRONTEND_PORT || 3000;
 const BACKEND_PORT = process.env.BACKEND_PORT || 2000;
 export default defineConfig({
   plugins: [react()],
+  server: {
+    port: FRONTEND_PORT, // 👈 change port here
+  },
 });

@@ -1,63 +1,57 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { FormControl } from "react-bootstrap";
+import { Form } from "react-bootstrap";
 import styles from "./task.module.css";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-export default function TaskReporter({
-  currentTask,
-  allUsers,
-  // errors,
-  // setErrors,
-}) {
-  const [reporter, setReporter] = useState(
-    currentTask.creator === null ? "Unassigned" : currentTask.creator
-  );
-  const handleChange = (value) => {
+export default function TaskReporter({ currentTask, allUsers }) {
+  const [reporter, setReporter] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Initialize reporter when currentTask loads
+  useEffect(() => {
+    setReporter(currentTask?.creator ?? "Unassigned");
+    setLoading(false);
+  }, [currentTask]);
+
+  const handleChange = async (value) => {
     setReporter(value);
-    if (value === "Unassigned") {
-      value = null;
-    }
-    axios
-      .put(
-        `http://localhost:8000/api/tasks/${currentTask._id}`,
-        { creator: value },
+    setError(null);
+    const creator = value === "Unassigned" ? null : value;
+
+    try {
+      await axios.put(
+        `${API_BASE_URL}/tasks/${currentTask._id}`,
+        { creator },
         { withCredentials: true }
-      )
-      .then((res) => res.data)
-      .catch(console.log);
-    // (err) => setErrors([...errors, err.response.data.message]));
+      );
+      // Optionally show success toast or update state elsewhere
+    } catch (err) {
+      setError("Failed to update reporter");
+      console.error(err);
+      // Optionally rollback reporter state here or show detailed message
+    }
   };
 
-  if (reporter === undefined) return "Loading...";
+  if (loading) return <div>Loading reporter...</div>;
+
   return (
-    <div className={styles.dropdown}>
+    <div className={styles.dropdown} style={{ maxWidth: 300 }}>
       <h5>Reporter</h5>
-      <FormControl
-        as="select"
+      <Form.Select
         value={reporter}
         onChange={(e) => handleChange(e.target.value)}
+        aria-label="Select task reporter"
       >
         <option value="Unassigned">Unassigned</option>
-        {allUsers.map((user, idx) => {
-          return (
-            <option key={idx} value={user._id}>
-              {user.name}
-            </option>
-          );
-        })}
-      </FormControl>
-      {/* <Select
-                options={allUsers}
-                onChange={(values) => handleChange(values)}
-                multi={false}
-                clearable={true}
-                searchable={true}
-                dropdownHandle={false}
-                labelField="name"
-                values={[
-                    allUsers.find((user) => user._id === currentTask.creator),
-                ]}
-            /> */}
+        {allUsers.map((user) => (
+          <option key={user._id} value={user._id}>
+            {user.name}
+          </option>
+        ))}
+      </Form.Select>
+      {error && <p style={{ color: "red", marginTop: 5 }}>{error}</p>}
     </div>
   );
 }

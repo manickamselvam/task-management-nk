@@ -1,30 +1,38 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { FormControl } from "react-bootstrap";
+import { Form, InputGroup } from "react-bootstrap";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-export default function TaskEstimate(currentTask) {
-  const [estimate, setEstimate] = useState(currentTask.estimate);
+export default function TaskEstimate({ estimate: initialEstimate, number }) {
+  const [estimate, setEstimate] = useState(initialEstimate || "");
 
-  const handleChange = (value) => {
+  const handleChange = async (value) => {
     setEstimate(value);
 
-    axios
-      .put(
-        `http://localhost:8000/api/tasks/${currentTask.number}`,
+    try {
+      await axios.put(
+        `${API_BASE_URL}/tasks/${number}`,
         { estimate: value },
         { withCredentials: true }
-      )
-      .then((res) => res.data)
-      .catch(console.log);
+      );
+    } catch (error) {
+      console.error("Failed to update estimate:", error);
+    }
   };
 
   return (
-    <div>
-      <FormControl
-        type="number"
-        value={estimate}
-        onChange={(e) => handleChange(e.target.value)}
-      ></FormControl>
-    </div>
+    <Form className="mt-2">
+      <Form.Label className="fw-bold">Task Estimate (hours)</Form.Label>
+      <InputGroup>
+        <Form.Control
+          type="number"
+          min="0"
+          value={estimate}
+          placeholder="Enter hours"
+          onChange={(e) => handleChange(e.target.value)}
+        />
+        <InputGroup.Text>hrs</InputGroup.Text>
+      </InputGroup>
+    </Form>
   );
 }
