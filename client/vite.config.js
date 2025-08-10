@@ -5,15 +5,4 @@ const FRONTEND_PORT = process.env.FRONTEND_PORT || 3000;
 const BACKEND_PORT = process.env.BACKEND_PORT || 2000;
 export default defineConfig({
   plugins: [react()],
-  server: {
-    port: FRONTEND_PORT,
-    proxy: {
-      "/api": {
-        target: `http://localhost:${BACKEND_PORT}`,
-        changeOrigin: true,
-        // rewrite: (path) => path.replace(/^\/api/, ""),
-      },
-    },
-    historyApiFallback: true, // 👈 this is the key line
-  },
 });
